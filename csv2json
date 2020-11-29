@@ -1,0 +1,13 @@
+#!/bin/bash
+
+if (( $# != 2 )); then
+    echo "USAGE: $0 account_id csv_file" >&2
+    exit 1
+fi
+
+ACCOUNT_ID=$1
+CSV_FILE=$2
+
+jq --arg account_id $ACCOUNT_ID --slurp --raw-input \
+    --from-file csv2json.jq \
+    $CSV_FILE

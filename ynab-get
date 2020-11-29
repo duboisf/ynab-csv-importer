@@ -1,0 +1,12 @@
+#!/bin/bash
+
+if (( $# != 1 )); then
+    echo "USAGE: $0 REST_ENDPOINT"
+    exit 1
+fi
+
+REST_ENDPOINT=$1
+
+curl -s \
+    -H "Authorization: Bearer $(jq -r .token ~/.ynab)" \
+    https://api.youneedabudget.com/v1/budgets/last-used/$REST_ENDPOINT
