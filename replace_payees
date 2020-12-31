@@ -1,17 +1,23 @@
 #!/bin/bash
 
 if (( $# != 1 )); then
-    echo "USAGE: $0 csv_file" >&2
+    echo "USAGE: $0 CSV_FILE" >&2
     exit 1
 fi
 
 CSV_FILE=$1
-CLEANED_FILE=${1}.clean
-cp $CSV_FILE $CLEANED_FILE
-while IFS= read -r line; do
-    replacement=$(cat ./payees.txt | fzf --header="$line")
-    if [[ -n "$replacement" ]]; then
-        original=$(echo "$line" | perl -wlne '/"(.*)"/ and print $1')
-        perl -i -wlpe "s/\Q$original\E/$replacement/" $CLEANED_FILE
-    fi
-done < $CSV_FILE
+
+replace() {
+    local line=$1
+    local file=$2
+    local replacement=$(cat ./payees.txt | fzf --header="$line")
+    [[ -z $replacement ]] && return 1
+    local original=$(echo "$line" | perl -wlne '/"(.*)"/ and print $1')
+    perl -i -wlpe "/,replaced/ or s|\Q$original\E|$replacement| and s/^(.*)$/\$1,replaced/" $file
+}
+
+while true; do
+    line=$(grep -Ev ',replaced$' $CSV_FILE | head -n 1)
+    [[ -z $line ]] && break
+    replace "$line" $CSV_FILE || exit
+done
